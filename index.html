@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<canvas id="cvs" width="800" height="600" style="border:1px solid red"></canvas>
+<canvas id="text" width="500" height="50" style="display: block;">文字特效</canvas>
+<script src="js/util.js"></script>
+<script src="js/Bird.js"></script>
+<script src="js/sky.js"></script>
+<script src="js/land.js"></script>
+<script src="js/pipe.js"></script>
+<script src="js/getImgObj.js"></script>
+<script>
+
+    (function () {
+        var cvs = document.getElementById("cvs");
+        var c = cvs.getContext("2d");
+
+        var text = document.getElementById("text");
+        var t = text.getContext("2d");
+
+        function drawText() {
+            t.font = "bold 14px 微软雅黑";
+            t.textAlign = "center";
+            t.textBaseline = "middle";
+            t.fillStyle = "red";
+            t.fillText("Game Over!", 200, 25);
+        }
+
+
+        getImgObj(function (imageObj) {
+//        console.log("图片加载完成");
+//        var i = 0;
+//        setInterval(function () {
+//            c.clearRect(0, 0, cvs.width, cvs.height);
+////            定时切换小鸟图片的位置 ,从原图剪切图片的大小
+//            c.drawImage(imageObj["birds"],
+//                    52 * i, 0, 52, 45,
+//                    10, 10, 52, 45);
+//            i = ++i % 3;
+//        }, 1000 / 10);
+
+
+//        初始化鸟类，把鸟类需要的图片对象传递进去
+            Bird.init(imageObj["birds"]);
+//        创建一个小鸟对象
+            var bird = new Bird(cvs, c, 50, 10, 52, 45);
+
+            //        每点击页面一次，小鸟在y轴上就上升一次，
+            cvs.addEventListener("click", function () {
+                bird.speed = -2;
+            })
+
+
+//        初始化天空类，把天空需要的图片对象传递进来
+            Sky.init(imageObj["sky"]);
+//        实例化天空类
+            var skys = [];
+            for (var i = 0; i < 2; i++) {
+                skys.push(new Sky(cvs, c, Sky.IMG_WIDTH * i));
+            }
+
+//        为了实现无缝滚动天空，再创建一个天空对象，等前一个移出最左边之后，接到最右边的图片
+
+
+//        初始化大地类
+            Land.init(imageObj["land"]);
+//        实例化大地类
+            var lands = [];
+            for (var i = 0; i < 4; i++) {
+                lands.push(new Land(cvs, c, Land.IMG_WIDTH * i));
+            }
+
+
+//        初始化上管道
+            Pipe.init(imageObj["pipeDown"], imageObj["pipeUp"]);
+            var pipes = [];
+            for (var i = 0; i < 6; i++) {
+                pipes.push(new Pipe(cvs, c, 200 + Pipe.IMG_WIDTH * 3 * i));
+            }
+
+//        小鸟动画
+            var timer = setInterval(function () {
+//                小鸟中心点获取
+                var birdX = bird.x + bird.width / 2;
+                var birdY = bird.y + bird.height / 2;
+                if (c.isPointInPath(birdX, birdY)) {
+                    drawText();
+                    clearInterval(timer);
+                    alert("aaa");
+                    c.drawImage(text, cvs.width - t.width, cvs.height - t.height);
+                }
+
+//            清除画布
+                c.clearRect(0, 0, cvs.width, cvs.height);
+
+                c.beginPath();
+
+//            先绘制天空，再绘制小鸟，否则小鸟会被天空图片给盖着
+                skys.forEach(function (value, index) {
+                    value.draw();
+                    value.update();
+                });
+
+                pipes.forEach(function (value, index) {
+                    value.draw();
+                    value.update();
+                });
+
+                lands.forEach(function (value, index) {
+                    value.draw();
+                    value.update();
+                });
+
+
+                bird.draw();
+                bird.update();
+
+            }, 1000 / 10);
+
+
+        });
+    }());
+
+</script>
+
+</body>
+</html>
